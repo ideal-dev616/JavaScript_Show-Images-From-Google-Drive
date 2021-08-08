@@ -25,8 +25,10 @@
     <script type="text/javascript">
 
         // Client ID and API key from the Developer Console
-        var CLIENT_ID = '1077067020657-qo94d9etrcnmfr65pbppmru4mkkv43hi.apps.googleusercontent.com';
-        var API_KEY = 'AIzaSyAgiitklvW-6dYzVllg-3iEbye4BEBsKx0';
+        // var CLIENT_ID = '1077067020657-qo94d9etrcnmfr65pbppmru4mkkv43hi.apps.googleusercontent.com';
+        // var API_KEY = 'AIzaSyAgiitklvW-6dYzVllg-3iEbye4BEBsKx0';
+        var CLIENT_ID = '652911682023-ntlugkvovvasv17896kvk9mjjk311k6e.apps.googleusercontent.com';
+        var API_KEY = 'AIzaSyDXc-NPu0AyfAVI7VBRDbcDmuCAoXxl5rU';
 
         // Array of API discovery doc URLs for APIs used by the quickstart
         var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
@@ -107,7 +109,8 @@
 
 
         async function listFiles() {
-            let rootFolderId = "1jKdBxjFZUBEWDTwQ1q4w1YH1Q7zIlRCd";
+            // let rootFolderId = "1jKdBxjFZUBEWDTwQ1q4w1YH1Q7zIlRCd";
+            let rootFolderId = "1hl65CYzxpQ4x5urLdq84lGhxa-kBKvQu";
             imageList = [];
             await getImageList(rootFolderId);
             displayImages();
