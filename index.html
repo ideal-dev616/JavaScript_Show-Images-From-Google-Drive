@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Images From Google Drive</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet"  href="./slider/src/css/lightslider.css"/>
+        <link rel="stylesheet"  href="./style.css"/>
+
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="./slider/src/js/lightslider.js"></script> 
+    </head>
+<body>
+    <p class="title">Google Drive API - Images from "Stayintouch"</p>
+	<div class="container">
+        <div class="item">
+            <div class="clearfix" style="max-width:500px;">
+                
+            </div>
+        </div>
+        <!--Add buttons to initiate auth sequence and sign out-->
+        <button id="authorize_button" style="display: none;">Authorize</button>
+        <button id="signout_button" style="display: none;">Sign Out</button>
+    </div>
+
+    <script type="text/javascript">
+
+        // Client ID and API key from the Developer Console
+        var CLIENT_ID = '1077067020657-qo94d9etrcnmfr65pbppmru4mkkv43hi.apps.googleusercontent.com';
+        var API_KEY = 'AIzaSyAgiitklvW-6dYzVllg-3iEbye4BEBsKx0';
+
+        // Array of API discovery doc URLs for APIs used by the quickstart
+        var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
+
+        // Authorization scopes required by the API; multiple scopes can be
+        // included, separated by spaces.
+        var SCOPES = 'https://www.googleapis.com/auth/drive ' +
+                    'https://www.googleapis.com/auth/drive.file ' + 
+                    'https://www.googleapis.com/auth/drive.readonly ' + 
+                    'https://www.googleapis.com/auth/drive.metadata.readonly ' + 
+                    'https://www.googleapis.com/auth/drive.appdata ' + 
+                    'https://www.googleapis.com/auth/drive.metadata ' + 
+                    'https://www.googleapis.com/auth/drive.photos.readonly';
+
+        var authorizeButton = document.getElementById('authorize_button');
+        var signoutButton = document.getElementById('signout_button');
+        
+        var imageList = [];
+        /**
+         *  On load, called to load the auth2 library and API client library.
+         */
+        function handleClientLoad() {
+            gapi.load('client:auth2', initClient);
+        }
+
+        /**
+         *  Initializes the API client library and sets up sign-in state
+         *  listeners.
+         */
+        function initClient() {
+            gapi.client.init({
+            apiKey: API_KEY,
+            clientId: CLIENT_ID,
+            discoveryDocs: DISCOVERY_DOCS,
+            scope: SCOPES
+            }).then(function () {
+            // Listen for sign-in state changes.
+            gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+
+            // Handle the initial sign-in state.
+            updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+            authorizeButton.onclick = handleAuthClick;
+            signoutButton.onclick = handleSignoutClick;
+            }, function(error) {
+                // console.log("err", error);
+            });
+        }
+
+        /**
+         *  Called when the signed in status changes, to update the UI
+         *  appropriately. After a sign-in, the API is called.
+         */
+        function updateSigninStatus(isSignedIn) {
+            if (isSignedIn) {
+            authorizeButton.style.display = 'none';
+            signoutButton.style.display = 'block';
+            listFiles();
+            } else {
+            authorizeButton.style.display = 'block';
+            signoutButton.style.display = 'none';
+            }
+        }
+
+        /**
+         *  Sign in the user upon button click.
+         */
+        function handleAuthClick(event) {
+            gapi.auth2.getAuthInstance().signIn();
+        }
+
+        /**
+         *  Sign out the user upon button click.
+         */
+        function handleSignoutClick(event) {
+            gapi.auth2.getAuthInstance().signOut();
+            $(".clearfix").html(``);
+        }
+
+
+        async function listFiles() {
+            let rootFolderId = "1jKdBxjFZUBEWDTwQ1q4w1YH1Q7zIlRCd";
+            imageList = [];
+            await getImageList(rootFolderId);
+            displayImages();
+            
+        }
+
+        async function getImageList(folderId) {
+            const response = await gapi.client.drive.files.list({
+                'q': "'" + folderId + "' in parents and trashed = false",
+                'fields': "nextPageToken, files(id, name, mimeType, createdTime)",
+                'orderBy': "createdTime desc",
+            })
+            var files = response.result.files;
+            if (files && files.length > 0) {
+                for (var i = 0; i < files.length; i++) {
+                    var file = files[i];
+                    if(file.mimeType == "application/vnd.google-apps.folder"){
+                        await getImageList(file.id);
+                    }else if(file.mimeType == "image/jpeg" || file.mimeType == "image/png"){
+                        var imageFileInfo = {"id":file.id, "name":file.name, "mimeType":file.mimeType, "createdTime": file.createdTime};
+                        imageList.push(imageFileInfo);
+                    }
+                }
+            } else {
+                imageList.push(null);
+            }
+        }
+
+        function displayImages(){
+            var htmlContent = `<ul id="image-gallery" class="gallery list-unstyled cS-hidden">`;
+            $(".clearfix").html(htmlContent);
+
+            imageList.sort( function(a, b) {
+                return new Date(b.createdTime) - new Date(a.createdTime);
+            });
+
+            for(i = 0; i < imageList.length; i++){    
+                htmlContent += `<li data-thumb="https://drive.google.com/uc?id=` + imageList[i].id + `"> 
+                                    <img class="image-show" src="https://drive.google.com/uc?id=` + imageList[i].id + `" />
+                                </li>`;
+            }
+            htmlContent += `</ul>`;
+            $(".clearfix").html(htmlContent);
+
+            $('#image-gallery').lightSlider({
+                gallery:true,
+                item:1,
+                slideMargin: 0,
+                speed:500,
+                auto:true,
+                loop:true,
+                onSliderLoad: function() {
+                    $('#image-gallery').removeClass('cS-hidden');
+                }  
+            });
+        }
+        
+        setInterval(function(){ 
+            listFiles();
+        }, 60000);
+
+        // If theres no activity for 2 minutes do something
+        var activityTimeout = setTimeout(inActive, 120000);
+
+        function resetActive(){
+            clearTimeout(activityTimeout);
+            activityTimeout = setTimeout(inActive, 120000);
+        }
+
+        // No activity do something.
+        function inActive(){
+            $( "#image-gallery li:first" ).click();
+        }
+
+        $(document).bind('mousemove', function(){resetActive()});
+
+    </script>
+
+    <script async defer src="https://apis.google.com/js/api.js"
+        onload="this.onload=function(){};handleClientLoad()"
+        onreadystatechange="if (this.readyState === 'complete') this.onload()">
+    </script>
+</body>

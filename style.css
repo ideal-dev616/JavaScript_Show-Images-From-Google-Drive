@@ -1,0 +1,36 @@
+ul{
+    list-style: none outside none;
+    padding-left: 0;
+    margin: 0;
+}
+.container .item{
+    margin-bottom: 60px;
+}
+.container{
+    position: relative;
+    margin: auto;
+    width: 500px;
+}
+
+.title {
+    color: #40a5ec; 
+    text-align: center; 
+    font-size: 25px; 
+    font-weight: 800;
+}
+
+.image-show{
+    width:500px;
+    height: 400px;
+}
+
+button{
+    background-color: #40a5ec;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 15px;
+}
